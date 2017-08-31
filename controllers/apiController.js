@@ -1,11 +1,13 @@
-var projectsRepo = require('../repositories/projectRepo');
-var bodyParser = require('body-parser');
+
+let projectsRepo = require('../repositories/projectRepo');
+let bodyParser = require('body-parser');
+let jobManager = require('../jobs/scheduledTaskManager');
 const Configstore = require('configstore');
 const pkg = require('../package.json');
 let conf = new Configstore(pkg.name);
 
 module.exports = function(app){
-    app.use(bodyParser.json())
+    app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended:true}));
 
     //init db
@@ -49,8 +51,8 @@ module.exports = function(app){
 
     //jobs
     app.get('/api/task',function(req,res){
-        var time = conf.get('taskTime');
-        var active = conf.get('taskActive');
+        let time = conf.get('taskTime');
+        let active = conf.get('taskActive');
         console.log({
             taskTime:time,
             taskActive:active
@@ -62,10 +64,16 @@ module.exports = function(app){
     });
 
     app.put('/api/task',function(req,res){
-        var time = req.body.taskTime;
-        if(taskTime<1 && taskTime>23) return;
+        let time = req.body.taskTime;
+        if(time<1 && time>23) return;
         conf.set("taskTime",req.body.taskTime);
         conf.set('taskActive',req.body.taskActive);
         res.sendStatus(200);
     });
+
+    app.get('/api/startTask',function(req,res) {
+        jobManager.startJob();
+        res.send({});
+    });
+    
 };

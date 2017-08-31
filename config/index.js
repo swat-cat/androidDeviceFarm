@@ -8,7 +8,8 @@ if(!conf.has('allSet')){
   conf.set('pwd','qwerty');
   conf.set('taskTime',19);
   conf.set('taskActive',false);
-  conf.set('allSet',true)
+  conf.set('allSet',true);
+  conf.set('running',false);
 }
 
 module.exports = {
