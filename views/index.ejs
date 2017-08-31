@@ -10,10 +10,16 @@
     <ng-view></ng-view>
 
     <!-- Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-resource.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
 
+    <script src="js/app.js"></script>
+    <script src="js/config/router.js"></script>
+    <script src="js/controllers/projects.controller.js"></script>
+    <script src="js/controllers/projectDetail.controller.js"></script>
+    <script src="js/controllers/task.controller.js"></script>
+    <script src="js/factories/api.factory.js"></script>
     <!-- Template -->
     <script type="text/ng-template" id="/projects.html">
       <ul>
@@ -53,127 +59,5 @@
       <button  ng-click="startTask()">Start Now</button>
     </div>
 
-
-    <script>
-      angular.module('app', ['ngRoute', 'ngResource'])
-
-        //---------------
-        // Services
-        //---------------
-
-        .factory('Api', ['$resource', function($resource){
-          return {
-            Projects: $resource('/api/projects/:id', null, {
-            'update': { method:'PUT' }
-            }),
-            Task: $resource('/api/task',null,{
-            'update': { method:'PUT' },
-            'query': { method: 'GET', isArray: false}
-            }),
-            StartTask:$resource('/api/startTask')
-          };
-        }])
-
-        //---------------
-        // Controllers
-        //---------------
-
-        .controller('ProjectsController', ['$scope', 'Api', function ($scope, Api) {
-          $scope.editing = [];
-          $scope.projects = Api.Projects.query();
-
-          $scope.save = function(){
-            if(!$scope.newProject || $scope.newProject.length < 1) return;
-            if(!$scope.newProjectRepo || $scope.newProjectRepo.length < 1) return;
-            console.log('save name: '+$scope.newProject);
-            console.log('save repo: '+$scope.newProjectRepo);
-            let project = new Api.Projects(
-              {   
-                  projectName: $scope.newProject,
-                  repoUrl: $scope.newProjectRepo,
-                  active: true 
-              }
-            );
-            console.log(project);
-            project.$save(function(projectResponse){
-              console.log(projectResponse);
-              $scope.projects.push(projectResponse);
-              $scope.newProject = ''; // clear textbox
-              $scope.newProjectRepo = '';
-            });
-          }
-
-          $scope.edit = function(index){
-            $scope.editing[index] = angular.copy($scope.projects[index]);
-          }
-
-          $scope.cancel = function(index){
-            $scope.projects[index] = angular.copy($scope.editing[index]);
-            $scope.editing[index] = false;
-          }
-
-          $scope.update = function(index){
-            var project = $scope.projects[index];
-            Api.Projects.update({id: project._id}, project);
-            $scope.editing[index] = false;
-          }
-
-          $scope.remove = function(index){
-            var project = $scope.projects[index];
-            Api.Projects.remove({id: project._id}, function(){
-              $scope.projects.splice(index, 1);
-            });
-          }
-        }])
-
-        .controller('ProjectDetailCtrl', ['$scope', '$routeParams', 'Api', '$location', function ($scope, $routeParams, Api, $location) {
-          $scope.project =Api.Projects.get({id: $routeParams.id });
-
-          $scope.remove = function(){
-            Api.Projects.remove({id: $scope.project._id}, function(){
-              $location.url('/');
-            });
-          }
-        }])
-        .controller('TaskController', ['$scope', '$routeParams', 'Api', '$location', function ($scope, $routeParams, Api, $location) {
-          $scope.task =Api.Task.query(function(res){
-              console.log(res);
-          });
-
-          $scope.updateTask = function(){
-            console.log("update task");
-            Api.Task.update($scope.task);
-          }
-
-          $scope.startTask = function(){
-            console.log("toggle task");            
-            Api.StartTask.query();
-          }
-        }])
-        //---------------
-        // Routes
-        //---------------
-
-        .config(['$routeProvider', function ($routeProvider) {
-          $routeProvider
-            .when('/', {
-              templateUrl: '/projects.html',
-              controller: 'ProjectsController'
-            })
-
-            .when('/:id', {
-              templateUrl:"/projectDetails.html",
-              controller: 'ProjectDetailCtrl'
-           }).
-           
-           when('/task',{
-            controller: 'TaskController'
-           }).
-
-           when('/startTask',{
-            controller: 'TaskController'
-           })
-        }]);
-    </script>
   </body>
 </html>
