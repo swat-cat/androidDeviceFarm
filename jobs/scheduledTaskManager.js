@@ -1,9 +1,9 @@
-'use strict';
+
 
 let cron = require('node-cron');
 let Configstore = require('configstore');
 let pkg = require('../package.json');
-let farm = require('farmManager.js');
+var farm = require('./farm/farmManager');
 
 let conf = new Configstore(pkg.name);
 
@@ -14,7 +14,7 @@ module.exports = {
       console.log(time);
       job = cron.schedule('* * '+time+' * *', function(){
           conf.set('running',true);
-          farm();
+          farm.run();
           conf.set('running',false);
       });
       },

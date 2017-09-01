@@ -5,6 +5,7 @@ let jobManager = require('../jobs/scheduledTaskManager');
 const Configstore = require('configstore');
 const pkg = require('../package.json');
 let conf = new Configstore(pkg.name);
+let farm = require('../jobs/farm/farmManager');
 
 module.exports = function(app){
     app.use(bodyParser.json());
@@ -72,8 +73,11 @@ module.exports = function(app){
     });
 
     app.get('/api/startTask',function(req,res) {
-        jobManager.startJob();
-        res.send({});
+        console.log("try run farm");
+        farm.run(function(report){
+            console.log(report);
+        });
+        res.send({});        
     });
     
 };
