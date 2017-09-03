@@ -1,4 +1,4 @@
-
+var Promise = require('bluebird');
 var adb = require('adbkit');
 var client = adb.createClient();
 var projectsRepo = require('../../repositories/projectRepo');
@@ -36,6 +36,7 @@ var start = function (iter,callback,report) {
     console.log(project);
     console.log(projectsDir);
     fs.exists(projectsDir+project.projectName,(exists)=>{
+        console.log("Callback :"+callback);
         if (exists) {
             pullProject(project,iter,report,callback);
         }
@@ -50,52 +51,64 @@ var pullProject = function (project,iter,report,callback){
     cmd.get(
     `
       cd ${projectsDir+project.projectName}
-      git pull origin develop
+      git pull origin ${project.workBranch}
+      git checkout ${project.workBranch}
       cd ${project.projectName}
       ls
       `
         ,
         function(err, data, stderr){
+            console.log("Callback :"+callback);
             if (!err) {
-                report+='the cmd pulled dir contains these files :\n\n',data+'\n';
-                console.log('the cmd pulled dir contains these files :\n\n',data)
+                report+='the cmd pulled dir contains these files :\n\n'+data+'\n';
+                console.log('the cmd pulled dir contains these files :\n\n',data);
                 fs.writeFileSync(projectsDir+project.projectName+'/local.properties',
                     'sdk.dir='+sdk_path,'utf-8');
-                buildApk(project,iter,report);
+                buildApk(project,iter,report,callback);
             } else {
-                report+='error', err+'\n';
-                console.log('error', err)
+                report+='error'+ err+'\n';
+                console.log('error', err);
                 start(iter,callback,report);
             }
         });
-}
+};
 
-var cloneProject = function (project,iter,report,callback){
+let cloneProject = function (project,iter,report,callback){
     cmd.get(
         `
         cd ${projectsDir}
         git clone ${project.repoUrl}
+        git pull origin ${project.workBranch}
+        git checkout ${project.workBranch}
         cd ${project.projectName}
         ls
         `,
         function(err, data, stderr){
+            console.log("Callback :"+callback);
             if (!err) {
                 report+='the cmd cloned dir contains these files :\n\n'+data+'\n';
                 console.log('the cmd cloned dir contains these files :\n\n',data);
-                fs.writeFileSync(projectsDir+project.projectName+'/local.properties',
+                try{
+                    fs.writeFileSync(projectsDir+project.projectName+'/local.properties',
                     'sdk.dir='+conf.get('sdk_path'),'utf-8');
+                }
+                catch(err){
+                    report+='error'+ err+'\n';
+                    start(iter,callback,report);
+                }
+            
                 buildApk(project,iter,report,callback);
             } else {
-                report+='error', err+'\n';
-                console.log('error', err)
-                start(iter);
+                report+='error'+ err+'\n';
+                console.log('error', err);
+                start(iter,callback,report);
             }
 
         }
     );
-}
+};
 
-var buildApk = function (project,iter,report,callback){
+let buildApk = function (project,iter,report,callback){
  cmd.get(
 ` cd ${projectsDir+project.projectName}
   ls
@@ -103,48 +116,85 @@ var buildApk = function (project,iter,report,callback){
   gradle app:assembleDevDebug
 `,
         function(err, data, stderr){
+            console.log("Callback :"+callback);
             if (!err) {
                 report+='the cmd build app these files :\n\n'+data+'\n';
-                console.log('the cmd build app these files :\n\n',data)
+                console.log('the cmd build app these files :\n\n',data);
+                installBuildToDevices(getApk(project.projectName),iter,report,callback,project);
             } else {
                 report+='error '+ err+'\n';
                 console.log('error', err);
+                start(iter,callback,report);
             }
-            start(iter,callback,report);
         }
     );
+};
+
+let getApk=function getApk(projectName) {
+    return path.join(projectsDir,projectName+'/app/build/outputs/apk/app-dev-debug.apk');
+};
+
+let installBuildToDevices = function (apk, iter, report, callback, project) {
+    client.listDevices()
+        .then(function (devices) {
+            return Promise.map(devices, function (device) {
+                console.log(device.id);
+                report += 'Installing to device' + device.id;
+                return client.install(device.id, apk);
+            }).then(function () {
+                return devices;
+            });
+        })
+        .then(function (devices) {
+            console.log(devices);
+            console.log("Callback :" + callback);
+            console.log('Installed %s on all connected devices', apk);
+            report += 'Installed %s on all connected devices';
+            let deviceIterator = new Iterator(devices);
+            let appIdCommand = `adb monkey -p ${project.appId} -v 500`;
+            runMonkey(deviceIterator, appIdCommand, report, callback, project, iter);
+        })
+        .catch(function (err) {
+            console.error('Something went wrong:', err.stack);
+            report += 'Something went wrong:' + err.stack;
+            start(iter, callback, report);
+        });
+};
+
+let runMonkey = function (deviceIterator, appIdCommand, report, callback, project, iter){
+
+        let itrValue = deviceIterator.next();
+        if(!itrValue.done){
+            console.warn(appIdCommand);
+            let device = itrValue.value;
+            cmd.get(
+                `
+                adb -s ${device.id} shell monkey --pct-touch 20 --pct-motion 20 --pct-nav 20 --pct-majornav 20 --pct-syskeys 10 --pct-appswitch 10 --ignore-security-exceptions -p ${project.appId} --throttle 100 -v 1000 -s 1000
+                `,
+                function(err, data, stderr){
+                    if (!err) {
+                        report+='monkey started on device'+device.id+'\n';
+                    } else {
+                        report+='error '+ err+'\n';
+                        console.log('error', err);
+                    }
+                    return runMonkey(deviceIterator, appIdCommand, report, callback, project, iter);
+                }
+            );
+        }
+        else{
+            start(iter, callback, report);
+        }
 }
-
-
 
 module.exports =  {
     run:run,
     start:start,
     pullProject:pullProject,
-    pullProject:pullProject,
-    buildApk:buildApk
+    cloneProject:cloneProject,
+    buildApk:buildApk,
+    installBuildToDevices:installBuildToDevices,
+    getApk:getApk,
+    runMonkey:runMonkey
 };
 
-/*
-function getApk(projectName) {
-
-}
-
-function installBuildToDevices() {
-
-}
-
-client.listDevices()
-  .then(function(devices) {
-    return Promise.map(devices, function(device) {
-        console.log(device.id)
-      return client.install(device.id, apk)
-    })
-  })
-  .then(function() {
-    console.log('Installed %s on all connected devices', apk)
-  })
-  .catch(function(err) {
-    console.error('Something went wrong:', err.stack)
-  })
-*/

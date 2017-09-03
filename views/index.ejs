@@ -42,6 +42,8 @@
         Add Project <br>
         project name <input type="text" ng-model="newProject"><br>
         project repo <input type="text" ng-model="newProjectRepo"><br>
+        app id <input type="text" ng-model="newAppId"><br>
+        working branch <input type="text" ng-model="newBranch"><br>
         <button ng-click="save()">Create</button><br><br>
       </script>
 
@@ -49,7 +51,9 @@
         <h1>{{ project.name }}</h1>
         active: <input type="checkbox" ng-model="project.active"><br>
         project name: <textarea ng-model="project.projectName"></textarea><br>
-        project repo: <textarea ng-model="project.repoUrl"></textarea><br><br>
+        project repo: <textarea ng-model="project.repoUrl"></textarea><br>
+        app id: <textarea ng-model="project.appId"></textarea><br>
+        working branch: <textarea ng-model="project.workBranch"></textarea><br>
         <button ng-click="update()">Update</button>
         <button ng-click="remove()">Remove</button>
         <a href="/">Cancel</a>

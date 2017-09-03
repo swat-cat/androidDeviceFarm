@@ -69,12 +69,20 @@ module.exports = function(app){
         if(time<1 && time>23) return;
         conf.set("taskTime",req.body.taskTime);
         conf.set('taskActive',req.body.taskActive);
+        if(req.body.taskActive){
+            console.log("start job");
+            jobManager.startJob();
+        }else{
+            console.log("stop job");
+            jobManager.stopJob();
+        }
         res.sendStatus(200);
     });
 
     app.get('/api/startTask',function(req,res) {
         console.log("try run farm");
         farm.run(function(report){
+            console.log('\n\n\nReport\n\n\n');
             console.log(report);
         });
         res.send({});        
