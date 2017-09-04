@@ -7,12 +7,16 @@
         $scope.save = function(){
             if(!$scope.newProject || $scope.newProject.length < 1) return;
             if(!$scope.newProjectRepo || $scope.newProjectRepo.length < 1) return;
+            if(!$scope.newAppId || $scope.newAppId.length < 1) return;
+            if(!$scope.newBranch || $scope.newBranch.length < 1) return;
             console.log('save name: '+$scope.newProject);
             console.log('save repo: '+$scope.newProjectRepo);
             let project = new Api.Projects(
                 {
                     projectName: $scope.newProject,
                     repoUrl: $scope.newProjectRepo,
+                    appId:$scope.newAppId,
+                    workBranch:$scope.newBranch,
                     active: true
                 }
             );
@@ -22,6 +26,8 @@
                 $scope.projects.push(projectResponse);
                 $scope.newProject = ''; // clear textbox
                 $scope.newProjectRepo = '';
+                $scope.newAppId = '';
+                $scope.newBranch ='';
             });
         };
 

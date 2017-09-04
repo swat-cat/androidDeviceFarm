@@ -3,6 +3,8 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
     <h1><%= title %></h1>
@@ -20,44 +22,53 @@
     <script src="js/controllers/projectDetail.controller.js"></script>
     <script src="js/controllers/task.controller.js"></script>
     <script src="js/factories/api.factory.js"></script>
-    <!-- Template -->
-    <script type="text/ng-template" id="/projects.html">
-      <ul>
-        <li ng-repeat="project in projects">
-          <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active<br>
-          Project name: <a ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
-          <button ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
 
-          <input ng-show="editing[$index]" type="text" ng-model="project.projectName">
-          <input ng-show="editing[$index]" type="text" ng-model="project.repoUrl">
-          <button ng-show="editing[$index]" ng-click="update($index)">Update</button>
-          <button ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
-          <button ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
-        </li>
-      </ul>
-      Add Project <br>
-      project name <input type="text" ng-model="newProject"><br>
-      project repo <input type="text" ng-model="newProjectRepo"><br>
-      <button ng-click="save()">Create</button><br><br>
-    </script>
+    <div class="container">
+      <!-- Template -->
+      <script type="text/ng-template" id="/projects.html">
+        <ul>
+          <li ng-repeat="project in projects">
+            <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active<br>
+            Project name: <a ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
+            <button ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
 
-    <script type="text/ng-template" id="/projectDetails.html">
-      <h1>{{ project.name }}</h1>
-      active: <input type="checkbox" ng-model="project.active"><br>
-      project name: <textarea ng-model="project.projectName"></textarea><br>
-      project repo: <textarea ng-model="project.repoUrl"></textarea><br><br>
-      <button ng-click="update()">Update</button>
-      <button ng-click="remove()">Remove</button>
-      <a href="/">Cancel</a>
-      <br><br>
-    </script>
+            <input ng-show="editing[$index]" type="text" ng-model="project.projectName">
+            <input ng-show="editing[$index]" type="text" ng-model="project.repoUrl">
+            <button ng-show="editing[$index]" ng-click="update($index)">Update</button>
+            <button ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
+            <button ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
+          </li>
+        </ul>
+        Add Project <br>
+        project name <input type="text" ng-model="newProject"><br>
+        project repo <input type="text" ng-model="newProjectRepo"><br>
+        app id <input type="text" ng-model="newAppId"><br>
+        working branch <input type="text" ng-model="newBranch"><br>
+        <button ng-click="save()">Create</button><br><br>
+      </script>
 
-    <div ng-controller="TaskController">
-      Scheduled Task<input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
-      Time <input type="text" ng-model="task.taskTime">
-      <button  ng-click="updateTask()">Update</button><br><br>
-      <button  ng-click="startTask()">Start Now</button>
+      <script type="text/ng-template" id="/projectDetails.html">
+        <h1>{{ project.name }}</h1>
+        active: <input type="checkbox" ng-model="project.active"><br>
+        project name: <textarea ng-model="project.projectName"></textarea><br>
+        project repo: <textarea ng-model="project.repoUrl"></textarea><br>
+        app id: <textarea ng-model="project.appId"></textarea><br>
+        working branch: <textarea ng-model="project.workBranch"></textarea><br>
+        <button ng-click="update()">Update</button>
+        <button ng-click="remove()">Remove</button>
+        <a href="/">Cancel</a>
+        <br><br>
+      </script>
+
+      <div ng-controller="TaskController">
+        Scheduled Task  <input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
+        Time  <input type="text" ng-model="task.taskTime">
+        <button  ng-click="updateTask()">Update</button><br><br>
+        <button  ng-click="startTask()">Start Now</button>
+      </div>
     </div>
+
+
 
   </body>
 </html>

@@ -5,6 +5,8 @@ var Schema = mongoose.Schema;
 var projectSchema = new Schema({
     projectName:String,
     repoUrl:String,
+    appId:String,
+    workBranch:String,
     active:Boolean
 });
 
