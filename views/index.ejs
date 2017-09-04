@@ -3,6 +3,8 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   </head>
   <body>
     <h1><%= title %></h1>
@@ -10,170 +12,63 @@
     <ng-view></ng-view>
 
     <!-- Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-resource.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
 
-    <!-- Template -->
-    <script type="text/ng-template" id="/projects.html">
-      <ul>
-        <li ng-repeat="project in projects">
-          <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active<br>
-          Project name: <a ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
-          <button ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
+    <script src="js/app.js"></script>
+    <script src="js/config/router.js"></script>
+    <script src="js/controllers/projects.controller.js"></script>
+    <script src="js/controllers/projectDetail.controller.js"></script>
+    <script src="js/controllers/task.controller.js"></script>
+    <script src="js/factories/api.factory.js"></script>
 
-          <input ng-show="editing[$index]" type="text" ng-model="project.projectName">
-          <input ng-show="editing[$index]" type="text" ng-model="project.repoUrl">
-          <button ng-show="editing[$index]" ng-click="update($index)">Update</button>
-          <button ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
-          <button ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
-        </li>
-      </ul>
-      Add Project <br>
-      project name <input type="text" ng-model="newProject"><br>
-      project repo <input type="text" ng-model="newProjectRepo"><br>
-      <button ng-click="save()">Create</button><br><br>
-    </script>
+    <div class="container">
+      <!-- Template -->
+      <script type="text/ng-template" id="/projects.html">
+        <ul>
+          <li ng-repeat="project in projects">
+            <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active<br>
+            Project name: <a ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
+            <button ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
 
-    <script type="text/ng-template" id="/projectDetails.html">
-      <h1>{{ project.name }}</h1>
-      active: <input type="checkbox" ng-model="project.active"><br>
-      project name: <textarea ng-model="project.projectName"></textarea><br>
-      project repo: <textarea ng-model="project.repoUrl"></textarea><br><br>
-      <button ng-click="update()">Update</button>
-      <button ng-click="remove()">Remove</button>
-      <a href="/">Cancel</a>
-      <br><br>
-    </script>
+            <input ng-show="editing[$index]" type="text" ng-model="project.projectName">
+            <input ng-show="editing[$index]" type="text" ng-model="project.repoUrl">
+            <button ng-show="editing[$index]" ng-click="update($index)">Update</button>
+            <button ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
+            <button ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
+          </li>
+        </ul>
+        Add Project <br>
+        project name <input type="text" ng-model="newProject"><br>
+        project repo <input type="text" ng-model="newProjectRepo"><br>
+        app id <input type="text" ng-model="newAppId"><br>
+        working branch <input type="text" ng-model="newBranch"><br>
+        <button ng-click="save()">Create</button><br><br>
+      </script>
 
-    <div ng-controller="TaskController">
-      Scheduled Task<input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
-      Time <input type="text" ng-model="task.taskTime">
-      <button  ng-click="updateTask()">Update</button><br><br>
-      <button  ng-click="startTask()">Start Now</button>
+      <script type="text/ng-template" id="/projectDetails.html">
+        <h1>{{ project.name }}</h1>
+        active: <input type="checkbox" ng-model="project.active"><br>
+        project name: <textarea ng-model="project.projectName"></textarea><br>
+        project repo: <textarea ng-model="project.repoUrl"></textarea><br>
+        app id: <textarea ng-model="project.appId"></textarea><br>
+        working branch: <textarea ng-model="project.workBranch"></textarea><br>
+        <button ng-click="update()">Update</button>
+        <button ng-click="remove()">Remove</button>
+        <a href="/">Cancel</a>
+        <br><br>
+      </script>
+
+      <div ng-controller="TaskController">
+        Scheduled Task  <input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
+        Time  <input type="text" ng-model="task.taskTime">
+        <button  ng-click="updateTask()">Update</button><br><br>
+        <button  ng-click="startTask()">Start Now</button>
+      </div>
     </div>
 
 
-    <script>
-      angular.module('app', ['ngRoute', 'ngResource'])
 
-        //---------------
-        // Services
-        //---------------
-
-        .factory('Api', ['$resource', function($resource){
-          return {
-            Projects: $resource('/api/projects/:id', null, {
-            'update': { method:'PUT' }
-            }),
-            Task: $resource('/api/task',null,{
-            'update': { method:'PUT' },
-            'query': { method: 'GET', isArray: false}
-            }),
-            StartTask:$resource('/api/startTask')
-          };
-        }])
-
-        //---------------
-        // Controllers
-        //---------------
-
-        .controller('ProjectsController', ['$scope', 'Api', function ($scope, Api) {
-          $scope.editing = [];
-          $scope.projects = Api.Projects.query();
-
-          $scope.save = function(){
-            if(!$scope.newProject || $scope.newProject.length < 1) return;
-            if(!$scope.newProjectRepo || $scope.newProjectRepo.length < 1) return;
-            console.log('save name: '+$scope.newProject);
-            console.log('save repo: '+$scope.newProjectRepo);
-            let project = new Api.Projects(
-              {   
-                  projectName: $scope.newProject,
-                  repoUrl: $scope.newProjectRepo,
-                  active: true 
-              }
-            );
-            console.log(project);
-            project.$save(function(projectResponse){
-              console.log(projectResponse);
-              $scope.projects.push(projectResponse);
-              $scope.newProject = ''; // clear textbox
-              $scope.newProjectRepo = '';
-            });
-          }
-
-          $scope.edit = function(index){
-            $scope.editing[index] = angular.copy($scope.projects[index]);
-          }
-
-          $scope.cancel = function(index){
-            $scope.projects[index] = angular.copy($scope.editing[index]);
-            $scope.editing[index] = false;
-          }
-
-          $scope.update = function(index){
-            var project = $scope.projects[index];
-            Api.Projects.update({id: project._id}, project);
-            $scope.editing[index] = false;
-          }
-
-          $scope.remove = function(index){
-            var project = $scope.projects[index];
-            Api.Projects.remove({id: project._id}, function(){
-              $scope.projects.splice(index, 1);
-            });
-          }
-        }])
-
-        .controller('ProjectDetailCtrl', ['$scope', '$routeParams', 'Api', '$location', function ($scope, $routeParams, Api, $location) {
-          $scope.project =Api.Projects.get({id: $routeParams.id });
-
-          $scope.remove = function(){
-            Api.Projects.remove({id: $scope.project._id}, function(){
-              $location.url('/');
-            });
-          }
-        }])
-        .controller('TaskController', ['$scope', '$routeParams', 'Api', '$location', function ($scope, $routeParams, Api, $location) {
-          $scope.task =Api.Task.query(function(res){
-              console.log(res);
-          });
-
-          $scope.updateTask = function(){
-            console.log("update task");
-            Api.Task.update($scope.task);
-          }
-
-          $scope.startTask = function(){
-            console.log("toggle task");            
-            Api.StartTask.query();
-          }
-        }])
-        //---------------
-        // Routes
-        //---------------
-
-        .config(['$routeProvider', function ($routeProvider) {
-          $routeProvider
-            .when('/', {
-              templateUrl: '/projects.html',
-              controller: 'ProjectsController'
-            })
-
-            .when('/:id', {
-              templateUrl:"/projectDetails.html",
-              controller: 'ProjectDetailCtrl'
-           }).
-           
-           when('/task',{
-            controller: 'TaskController'
-           }).
-
-           when('/startTask',{
-            controller: 'TaskController'
-           })
-        }]);
-    </script>
   </body>
 </html>

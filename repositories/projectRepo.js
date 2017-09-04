@@ -6,12 +6,16 @@ module.exports = {
             {
                 projectName:"String",
                 repoUrl:"String",
-                active:false
+                active:false,
+                appId:"String",
+                workBranch:'String'
             },
             {
                 projectName:"Test",
                 repoUrl:"Test",
-                active:false
+                active:false,
+                appId:"String",
+                workBranch:"String"
             }
         ];
         Project.create(setupProject,function(err,result){
@@ -45,7 +49,9 @@ module.exports = {
         var newProject = Project({
             projectName:project.projectName,
             repoUrl:project.repoUrl,
-            active:project.active
+            active:project.active,
+            appId:project.appId,
+            workBranch:project.workBranch
         });
 
         newProject.save(newProject, callback, function(err,project){
