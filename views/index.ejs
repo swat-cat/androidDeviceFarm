@@ -2,69 +2,134 @@
 <html ng-app="app">
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <h1><%= title %></h1>
 
-    <ng-view></ng-view>
+    <div class="device-farm">
+      <h1><%= title %></h1>
 
-    <!-- Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
+      <ng-view></ng-view>
 
-    <script src="js/app.js"></script>
-    <script src="js/config/router.js"></script>
-    <script src="js/controllers/projects.controller.js"></script>
-    <script src="js/controllers/projectDetail.controller.js"></script>
-    <script src="js/controllers/task.controller.js"></script>
-    <script src="js/factories/api.factory.js"></script>
+      <!-- Libraries -->
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-route.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-resource.min.js"></script>
 
-    <div class="container">
+      <script src="js/app.js"></script>
+      <script src="js/config/router.js"></script>
+      <script src="js/controllers/projects.controller.js"></script>
+      <script src="js/controllers/projectDetail.controller.js"></script>
+      <script src="js/controllers/task.controller.js"></script>
+      <script src="js/factories/api.factory.js"></script>
+
       <!-- Template -->
       <script type="text/ng-template" id="/projects.html">
-        <ul>
-          <li ng-repeat="project in projects">
-            <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active<br>
-            Project name: <a ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
-            <button ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
+        <div class="projects">
+          <h2 class="projects__title">Projects</h2>
+          <ul class="projects__list">
+            <li ng-repeat="project in projects" class="projects__item">
+              
+              <div class="form-group">
+                <input type="checkbox" ng-model="project.active" ng-change="update($index)"> active
+              </div>
+              
+              <div class="form-inline">
+                <label ng-hide="editing[$index]">Project name:</label><a class="projects__name" ng-show="!editing[$index]" href="#/{{project._id}}">{{project.projectName}}</a>
+              </div>
 
-            <input ng-show="editing[$index]" type="text" ng-model="project.projectName">
-            <input ng-show="editing[$index]" type="text" ng-model="project.repoUrl">
-            <button ng-show="editing[$index]" ng-click="update($index)">Update</button>
-            <button ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
-            <button ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
-          </li>
-        </ul>
-        Add Project <br>
-        project name <input type="text" ng-model="newProject"><br>
-        project repo <input type="text" ng-model="newProjectRepo"><br>
-        app id <input type="text" ng-model="newAppId"><br>
-        working branch <input type="text" ng-model="newBranch"><br>
-        <button ng-click="save()">Create</button><br><br>
+              <div class="project__btns">
+                <button class="btn btn-primary" ng-show="!editing[$index]" ng-click="edit($index)">edit</button>
+                <button class="btn btn-primary" ng-show="!editing[$index]" ng-click="remove($index)">remove</button>
+              </div>
+              
+              <div ng-show="editing[$index]" class="form-group projects__edit-field">
+                <label>Project name:</label>
+                <input class="form-control" type="text" ng-model="project.projectName">
+              </div>
+              <div ng-show="editing[$index]" class="form-group projects__edit-field">
+                <label>Project repo:</label>
+                <input class="form-control" type="text" ng-model="project.repoUrl">
+              </div>
+              
+              
+              <button class="btn btn-primary" ng-show="editing[$index]" ng-click="update($index)">Update</button>
+              <button class="btn btn-primary" ng-show="editing[$index]" ng-click="cancel($index)">Cancel</button>
+              
+            </li>
+          </ul>
+        </div>
+
+        <div class="add-project">
+          <h2 class="add-project__title">Add Project </h2>
+          <div class="form-group add-project__item">
+            <label>project name</label>
+            <input type="text" class="form-control" ng-model="newProject">
+          </div>
+          <div class="form-group add-project__item">
+            <label>project repo</label>
+            <input type="text" class="form-control" ng-model="newProjectRepo">
+          </div>
+          <div class="form-group add-project__item">
+            <label>app id </label>
+            <input type="text" class="form-control" ng-model="newAppId">
+          </div>
+          <div class="form-group add-project__item">
+            <label>working branch</label>
+            <input type="text" class="form-control" ng-model="newBranch">
+          </div>
+          <button class="btn btn-primary" ng-click="save()">Create</button>
+        </div>
+      
       </script>
 
       <script type="text/ng-template" id="/projectDetails.html">
         <h1>{{ project.name }}</h1>
-        active: <input type="checkbox" ng-model="project.active"><br>
-        project name: <textarea ng-model="project.projectName"></textarea><br>
-        project repo: <textarea ng-model="project.repoUrl"></textarea><br>
-        app id: <textarea ng-model="project.appId"></textarea><br>
-        working branch: <textarea ng-model="project.workBranch"></textarea><br>
-        <button ng-click="update()">Update</button>
-        <button ng-click="remove()">Remove</button>
-        <a href="/">Cancel</a>
-        <br><br>
+        
+        <div class="project-details">
+          
+          <div class="form-group">
+            active: <input type="checkbox" ng-model="project.active">
+          </div>
+          
+          <div class="form-group">
+            <label>project name:</label> <input class="form-control" ng-model="project.projectName"/>
+          </div>
+          <div class="form-group">
+            <label>project repo:</label> <input class="form-control" ng-model="project.repoUrl"/>
+          </div>
+          <div class="form-group">
+            <label>app id</label>: <input class="form-control" ng-model="project.appId"/>
+          </div>
+          <div class="form-group">
+            <label>working branch:</label> <input class="form-control" ng-model="project.workBranch"/>
+          </div>
+          
+          <div class="form-inline">
+            <button  class="btn btn-primary" ng-click="update()">Update</button>
+            <button  class="btn btn-primary" ng-click="remove()">Remove</button>
+            <a href="/" class="btn btn-primary" >Cancel</a>
+          </div>
+
+        </div>
+
+        
       </script>
 
-      <div ng-controller="TaskController">
-        Scheduled Task  <input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
-        Time  <input type="text" ng-model="task.taskTime">
-        <button  ng-click="updateTask()">Update</button><br><br>
-        <button  ng-click="startTask()">Start Now</button>
+      <div ng-controller="TaskController" class="time">
+        <div class="form-group time__item">
+          <label>Scheduled Task</label>  <input type="checkbox" ng-model="task.taskActive" ng-change="updateTask()">
+        </div>
+        <div class="form-group time__item">
+          <label >Time</label>  <input type="text" class="form-control" ng-model="task.taskTime">
+        </div>
+        
+        
+        <button class="btn btn-primary"  ng-click="updateTask()">Update</button>
+        <button class="btn btn-primary"  ng-click="startTask()">Start Now</button>
       </div>
     </div>
 
