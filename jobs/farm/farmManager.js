@@ -169,7 +169,7 @@ let runMonkey = function (deviceIterator, appIdCommand, report, callback, projec
             let device = itrValue.value;
             cmd.get(
                 `
-                adb -s ${device.id} shell monkey --pct-touch 20 --pct-motion 20 --pct-nav 20 --pct-majornav 20 --pct-syskeys 10 --pct-appswitch 10 --ignore-security-exceptions -p ${project.appId} --throttle 100 -v 1000 -s 1000
+                adb -s ${device.id} shell monkey --pct-touch 20 --pct-motion 20 --pct-nav 20 --pct-majornav 20 --pct-appswitch 10 --ignore-security-exceptions -p ${project.appId} --throttle 100 -v 1000 -s 1000
                 `,
                 function(err, data, stderr){
                     if (!err) {
