@@ -1,0 +1,60 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.device-farm {
+	width: 100%;
+	max-width: 500px;
+	margin: 0 auto;
+	padding: 20px;
+	border: 1px solid #333;
+	border-radius: 20px;
+}
+
+.device-farm h1 {
+	font-weight: bold;
+	text-align: center;
+}
+
+.projects__list {
+	padding-left: 0;
+	list-style: none;
+	margin-bottom: 60px;
+}
+
+.projects__item {
+	margin-bottom: 10px;
+}
+
+.projects__name {
+	margin-left: 10px;
+}
+
+.add-project {
+	margin-bottom: 60px;
+}
+
+.add-project__item {
+	margin-bottom: 10px;
+}
+
+.form-inline label, .form-group label {
+	text-transform: uppercase;
+}
+
+.add-project__item:last-child {
+	margin-bottom: 0;
+}
+
+.time__item {
+	margin-bottom: 20px;
+}
+
+.project-details {
+	margin-bottom: 30px;
+}
