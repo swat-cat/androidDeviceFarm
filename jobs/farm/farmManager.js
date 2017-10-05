@@ -140,10 +140,52 @@ let installBuildToDevices = function (apk, iter, report, callback, project) {
             return Promise.map(devices, function (device) {
                 console.log(device.id);
                 report += 'Installing to device' + device.id;
-                return client.install(device.id, apk);
-            }).then(function () {
-                return devices;
-            });
+                return {
+                    isInstalled: client.isInstalled(device.id, project.appId),
+                    device: device
+                }
+                // return client.install(device.id, apk);
+            }).then(function (obj) {
+                if(obj.isInstalled){
+                    //TODO: delete application from device
+                    report+='uninstalling project '+project.appId+' from device'+obj.device.id;
+                    console.log('uninstalling project '+project.appId+' from device'+obj.device.id)
+                    return new Promise(function(resolve){
+                        //TODO: function to delete applicetion
+                        cmd.get(
+                            `
+                            adb -s ${obj.device.id} uninstall ${project.appId}
+                            `,
+                            function(err, data, stderr){
+                                console.log("Callback :"+callback);
+                                if (!err) {
+                                    report+='the cmd build app these files :\n\n'+data+'\n';
+                                    console.log('the cmd build app these files :\n\n',data);
+                                } else {
+                                    report+='error '+ err+'\n';
+                                    console.log('error', err);
+                                    start(iter,callback,report);
+                                }
+                                resolve(obj)
+                            }
+                        );
+                        
+                    })
+                }else{
+                    return new Promise(function(resolve){
+                        resolve(obj)
+                    })
+                }
+            }).then(function(obj){
+                return new Promise(function(resolve){
+                    client.install(obj.device.id,apk).then(function(){
+                        resolve(obj.device)
+                    })
+                }) 
+            }).catch(function(err){
+                report+='error '+ err+'\n';
+                console.log('error', err);
+            })
         })
         .then(function (devices) {
             console.log(devices);

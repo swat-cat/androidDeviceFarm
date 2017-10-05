@@ -10,7 +10,7 @@ const conf = new Configstore(pkg.name);
   conf.set('taskActive',false);
   conf.set('allSet',true);
   conf.set('running',false);
-  conf.set("sdk_path",'/Users/admin/Library/Android/sdk');
+  conf.set("sdk_path",'/Users/max_ermakov/Library/Android/sdk');
 
 
 module.exports = {
