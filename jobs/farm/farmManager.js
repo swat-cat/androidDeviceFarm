@@ -137,10 +137,30 @@ let getApk=function getApk(projectName) {
 let installBuildToDevices = function (apk, iter, report, callback, project) {
     client.listDevices()
         .then(function (devices) {
+            
+
             return Promise.map(devices, function (device) {
-                console.log(device.id);
-                report += 'Installing to device' + device.id;
-                return client.install(device.id, apk);
+                console.log('Uninstalling from '+device.id+' '+project.appId);
+                report += 'Uninstalling from '+device.id+' '+project.appId;
+                cmd.get(
+                    `
+                    adb -s ${device.id} uninstall ${project.appId}
+                    `,
+                    function(err, data, stderr){
+                        console.log("Callback :"+callback);
+                        if (!err) {
+                            report+='the cmd build app these files :\n\n'+data+'\n';
+                            console.log('the cmd build app these files :\n\n',data);
+                        } else {
+                            report+='error '+ err+'\n';
+                            console.log('error', err);
+                        }
+                        console.log(device.id);
+                        report += 'Installing to device' + device.id;
+                        return client.install(device.id, apk);
+                    }
+                );
+                
             }).then(function () {
                 return devices;
             });
