@@ -77,7 +77,7 @@ let cloneProject = function (project,iter,report,callback){
     cmd.get(
         `
         cd ${projectsDir}
-        git clone ${project.repoUrl}
+        git clone ${project.repoUrl} ${project.projectName}
         git pull origin ${project.workBranch}
         git checkout ${project.workBranch}
         cd ${project.projectName}
