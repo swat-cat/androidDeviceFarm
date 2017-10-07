@@ -31,6 +31,10 @@ var start = function (iter,callback,report) {
         return;
     }
     let project = item.value;
+    if(!project.active){
+        start(iter,callback,report);
+        return;
+    }
     report+=project+'\n';
     report+=projectsDir+'\n';
     console.log(project);
@@ -51,8 +55,9 @@ var pullProject = function (project,iter,report,callback){
     cmd.get(
     `
       cd ${projectsDir+project.projectName}
-      git pull origin ${project.workBranch}
+      git clean -n -d -x
       git checkout ${project.workBranch}
+      git pull origin ${project.workBranch}
       cd ${project.projectName}
       ls
       `
@@ -78,7 +83,7 @@ let cloneProject = function (project,iter,report,callback){
         `
         cd ${projectsDir}
         git clone ${project.repoUrl} ${project.projectName}
-        git pull origin ${project.workBranch}
+        git clean -n -d -x
         git checkout ${project.workBranch}
         cd ${project.projectName}
         ls
@@ -120,7 +125,7 @@ let buildApk = function (project,iter,report,callback){
             if (!err) {
                 report+='the cmd build app these files :\n\n'+data+'\n';
                 console.log('the cmd build app these files :\n\n',data);
-                installBuildToDevices(getApk(project.projectName),iter,report,callback,project);
+                uninstallApps(iter,report,callback,project);
             } else {
                 report+='error '+ err+'\n';
                 console.log('error', err);
@@ -134,33 +139,52 @@ let getApk=function getApk(projectName) {
     return path.join(projectsDir,projectName+'/app/build/outputs/apk/app-dev-debug.apk');
 };
 
+let deleteApps = function(deviceIter, iter, report, callback, project){
+    let device = deviceIter.next();
+    if(!device.done){
+        console.log('Uninstalling from '+device.value.id+' '+project.appId);
+        report += 'Uninstalling from '+device.value.id+' '+project.appId;
+        cmd.get(
+            `
+            adb -s ${device.value.id} uninstall ${project.appId}
+            `,
+            function(err, data, stderr){
+                console.log("Callback :"+callback);
+                if (!err) {
+                    report+=`${device.value.id} uninstall ${project.appId}`;
+                    console.log(`${device.value.id} uninstall ${project.appId}`);
+                } else {
+                    report+='error '+ err+'\n';
+                    console.log('error', err);
+                }
+                deleteApps(deviceIter,iter, report, callback, project);
+            }
+        );
+    }
+    else{
+        installBuildToDevices(getApk(project.projectName),iter,report,callback,project);
+    }
+};
+
+let uninstallApps = function(iter, report, callback, project){
+    client.listDevices((err, devices)=>{
+        if(!err){
+            let devicesIter = new Iterator(devices);
+            deleteApps(devicesIter, iter, report, callback, project)
+        }
+        else{
+            start(iter, callback, report);
+        }
+    })
+}
+
 let installBuildToDevices = function (apk, iter, report, callback, project) {
     client.listDevices()
         .then(function (devices) {
-            
-
             return Promise.map(devices, function (device) {
-                console.log('Uninstalling from '+device.id+' '+project.appId);
-                report += 'Uninstalling from '+device.id+' '+project.appId;
-                cmd.get(
-                    `
-                    adb -s ${device.id} uninstall ${project.appId}
-                    `,
-                    function(err, data, stderr){
-                        console.log("Callback :"+callback);
-                        if (!err) {
-                            report+='the cmd build app these files :\n\n'+data+'\n';
-                            console.log('the cmd build app these files :\n\n',data);
-                        } else {
-                            report+='error '+ err+'\n';
-                            console.log('error', err);
-                        }
-                        console.log(device.id);
-                        report += 'Installing to device' + device.id;
-                        return client.install(device.id, apk);
-                    }
-                );
-                
+                console.log(device.id);
+                report += 'Installing to device' + device.id;
+                return client.install(device.id, apk);
             }).then(function () {
                 return devices;
             });
@@ -171,8 +195,7 @@ let installBuildToDevices = function (apk, iter, report, callback, project) {
             console.log('Installed %s on all connected devices', apk);
             report += 'Installed %s on all connected devices';
             let deviceIterator = new Iterator(devices);
-            let appIdCommand = `adb monkey -p ${project.appId} -v 500`;
-            runMonkey(deviceIterator, appIdCommand, report, callback, project, iter);
+            runMonkey(deviceIterator, report, callback, project, iter);
         })
         .catch(function (err) {
             console.error('Something went wrong:', err.stack);
@@ -181,11 +204,10 @@ let installBuildToDevices = function (apk, iter, report, callback, project) {
         });
 };
 
-let runMonkey = function (deviceIterator, appIdCommand, report, callback, project, iter){
+let runMonkey = function (deviceIterator, report, callback, project, iter){
 
         let itrValue = deviceIterator.next();
         if(!itrValue.done){
-            console.warn(appIdCommand);
             let device = itrValue.value;
             cmd.get(
                 `
@@ -198,7 +220,7 @@ let runMonkey = function (deviceIterator, appIdCommand, report, callback, projec
                         report+='error '+ err+'\n';
                         console.log('error', err);
                     }
-                    return runMonkey(deviceIterator, appIdCommand, report, callback, project, iter);
+                    return runMonkey(deviceIterator, report, callback, project, iter);
                 }
             );
         }
@@ -213,6 +235,8 @@ module.exports =  {
     pullProject:pullProject,
     cloneProject:cloneProject,
     buildApk:buildApk,
+    uninstallApps:uninstallApps,
+    deleteApps:deleteApps,
     installBuildToDevices:installBuildToDevices,
     getApk:getApk,
     runMonkey:runMonkey
