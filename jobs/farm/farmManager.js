@@ -58,7 +58,6 @@ var pullProject = function (project,iter,report,callback){
       git clean -n -d -x
       git checkout ${project.workBranch}
       git pull origin ${project.workBranch}
-      cd ${project.projectName}
       ls
       `
         ,
@@ -83,9 +82,9 @@ let cloneProject = function (project,iter,report,callback){
         `
         cd ${projectsDir}
         git clone ${project.repoUrl} ${project.projectName}
+        cd ${project.projectName}
         git clean -n -d -x
         git checkout ${project.workBranch}
-        cd ${project.projectName}
         ls
         `,
         function(err, data, stderr){
